@@ -17,3 +17,18 @@ This example route service uses the new headers/features that have been added to
 - Push your app which will be associated with the route service.
 - Use the [rtr CLI](https://github.com/cloudfoundry-incubator/routing-api-cli) to register this example as the `route_service_url` of your chosen app.
 - Tail the logs of this route service in order to verify that requests to your app go through the route service. The example logging route service will log requests and responses to and from your app.
+
+## Environment Variables
+
+### ROUTE_SERVICE_SLEEP_MILLI
+
+If you set this environment variable in the running app, the route service
+will sleep for that many milliseconds before proxying the request. This can
+be used to simulate route services that are slow to respond.
+
+Example (10 seconds):
+
+```sh
+cf set-env logging-route-service ROUTE_SERVICE_SLEEP_MILLI 10000
+cf restage logging-route-service
+```

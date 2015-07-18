@@ -8,6 +8,8 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"strconv"
+	"time"
 )
 
 const (
@@ -43,6 +45,11 @@ func NewProxy(transport http.RoundTripper) http.Handler {
 			req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 			logRequest(forwardedURL, sigHeader, req.Header, string(body))
+
+			err = sleep()
+			if err != nil {
+				log.Fatalln(err.Error())
+			}
 
 			// Note that url.Parse is decoding any url-encoded characters.
 			url, err := url.Parse(forwardedURL)
@@ -102,4 +109,19 @@ func (lrt *LoggingRoundTripper) RoundTrip(request *http.Request) (*http.Response
 	log.Println("Sending response to GoRouter...")
 
 	return res, err
+}
+
+func sleep() error {
+	sleepMilliString := os.Getenv("ROUTE_SERVICE_SLEEP_MILLI")
+	if sleepMilliString != "" {
+		sleepMilli, err := strconv.ParseInt(sleepMilliString, 0, 64)
+		if err != nil {
+			return err
+		}
+
+		log.Printf("Sleeping for %d milliseconds\n", sleepMilli)
+		time.Sleep(time.Duration(sleepMilli) * time.Millisecond)
+
+	}
+	return nil
 }
