@@ -8,7 +8,7 @@ The Route Service feature is currently in development, the proposal can be found
 
 This example route service uses the new headers/features that have been added to the GoRouter. For example:
 
-- `X-CF-Forwarded-URL`: A header that contains the original URL that the GoRouter received.
+- `X-CF-Forwarded-Url`: A header that contains the original URL that the GoRouter received.
 - `X-CF-Proxy-Signature`: A header that the GoRouter uses to determine if a request has gone through the route service.
 
 ## Getting Started
