@@ -32,3 +32,15 @@ Example (10 seconds):
 cf set-env logging-route-service ROUTE_SERVICE_SLEEP_MILLI 10000
 cf restage logging-route-service
 ```
+
+### SKIP_SSL_VALIDATION
+
+If you set this environment variable to false, the route service
+will validate SSL certificates. By default the route service skips SSL validation.
+
+Example (10 seconds):
+
+```sh
+cf set-env logging-route-service SKIP_SSL_VALIDATION false
+cf restage logging-route-service
+```

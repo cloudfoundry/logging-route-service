@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -19,20 +20,27 @@ const (
 )
 
 func main() {
-	var port string
+	var (
+		port                string
+		skip_ssl_validation bool
+		err                 error
+	)
+
 	if port = os.Getenv("PORT"); len(port) == 0 {
 		port = DEFAULT_PORT
 	}
-
+	if skip_ssl_validation, err = strconv.ParseBool(os.Getenv("SKIP_SSL_VALIDATION")); err != nil {
+		skip_ssl_validation = true
+	}
 	log.SetOutput(os.Stdout)
 
-	roundTripper := NewLoggingRoundTripper()
-	proxy := NewProxy(roundTripper)
+	roundTripper := NewLoggingRoundTripper(skip_ssl_validation)
+	proxy := NewProxy(roundTripper, skip_ssl_validation)
 
 	log.Fatal(http.ListenAndServe(":"+port, proxy))
 }
 
-func NewProxy(transport http.RoundTripper) http.Handler {
+func NewProxy(transport http.RoundTripper, skip_ssl_validation bool) http.Handler {
 	reverseProxy := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
 			forwardedURL := req.Header.Get(CF_FORWARDED_URL_HEADER)
@@ -44,7 +52,7 @@ func NewProxy(transport http.RoundTripper) http.Handler {
 			}
 			req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
-			logRequest(forwardedURL, sigHeader, req.Header, string(body))
+			logRequest(forwardedURL, sigHeader, string(body), req.Header, skip_ssl_validation)
 
 			err = sleep()
 			if err != nil {
@@ -65,7 +73,8 @@ func NewProxy(transport http.RoundTripper) http.Handler {
 	return reverseProxy
 }
 
-func logRequest(forwardedURL, sigHeader string, headers http.Header, body string) {
+func logRequest(forwardedURL, sigHeader, body string, headers http.Header, skip_ssl_validation bool) {
+	log.Printf("Skip ssl validation set to %t", skip_ssl_validation)
 	log.Println("Received request: ")
 	log.Printf("%s: %s\n", CF_FORWARDED_URL_HEADER, forwardedURL)
 	log.Printf("%s: %s\n", CF_PROXY_SIGNATURE_HEADER, sigHeader)
@@ -79,9 +88,12 @@ type LoggingRoundTripper struct {
 	transport http.RoundTripper
 }
 
-func NewLoggingRoundTripper() *LoggingRoundTripper {
+func NewLoggingRoundTripper(skip_ssl_validation bool) *LoggingRoundTripper {
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: skip_ssl_validation},
+	}
 	return &LoggingRoundTripper{
-		transport: http.DefaultTransport,
+		transport: tr,
 	}
 }
 
