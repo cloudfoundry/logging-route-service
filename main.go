@@ -21,26 +21,26 @@ const (
 
 func main() {
 	var (
-		port                string
-		skip_ssl_validation bool
-		err                 error
+		port              string
+		skipSslValidation bool
+		err               error
 	)
 
 	if port = os.Getenv("PORT"); len(port) == 0 {
 		port = DEFAULT_PORT
 	}
-	if skip_ssl_validation, err = strconv.ParseBool(os.Getenv("SKIP_SSL_VALIDATION")); err != nil {
-		skip_ssl_validation = true
+	if skipSslValidation, err = strconv.ParseBool(os.Getenv("SKIP_SSL_VALIDATION")); err != nil {
+		skipSslValidation = true
 	}
 	log.SetOutput(os.Stdout)
 
-	roundTripper := NewLoggingRoundTripper(skip_ssl_validation)
-	proxy := NewProxy(roundTripper, skip_ssl_validation)
+	roundTripper := NewLoggingRoundTripper(skipSslValidation)
+	proxy := NewProxy(roundTripper, skipSslValidation)
 
 	log.Fatal(http.ListenAndServe(":"+port, proxy))
 }
 
-func NewProxy(transport http.RoundTripper, skip_ssl_validation bool) http.Handler {
+func NewProxy(transport http.RoundTripper, skipSslValidation bool) http.Handler {
 	reverseProxy := &httputil.ReverseProxy{
 		Director: func(req *http.Request) {
 			forwardedURL := req.Header.Get(CF_FORWARDED_URL_HEADER)
@@ -52,7 +52,7 @@ func NewProxy(transport http.RoundTripper, skip_ssl_validation bool) http.Handle
 			}
 			req.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
-			logRequest(forwardedURL, sigHeader, string(body), req.Header, skip_ssl_validation)
+			logRequest(forwardedURL, sigHeader, string(body), req.Header, skipSslValidation)
 
 			err = sleep()
 			if err != nil {
@@ -73,8 +73,8 @@ func NewProxy(transport http.RoundTripper, skip_ssl_validation bool) http.Handle
 	return reverseProxy
 }
 
-func logRequest(forwardedURL, sigHeader, body string, headers http.Header, skip_ssl_validation bool) {
-	log.Printf("Skip ssl validation set to %t", skip_ssl_validation)
+func logRequest(forwardedURL, sigHeader, body string, headers http.Header, skipSslValidation bool) {
+	log.Printf("Skip ssl validation set to %t", skipSslValidation)
 	log.Println("Received request: ")
 	log.Printf("%s: %s\n", CF_FORWARDED_URL_HEADER, forwardedURL)
 	log.Printf("%s: %s\n", CF_PROXY_SIGNATURE_HEADER, sigHeader)
@@ -88,9 +88,9 @@ type LoggingRoundTripper struct {
 	transport http.RoundTripper
 }
 
-func NewLoggingRoundTripper(skip_ssl_validation bool) *LoggingRoundTripper {
+func NewLoggingRoundTripper(skipSslValidation bool) *LoggingRoundTripper {
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: skip_ssl_validation},
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: skipSslValidation},
 	}
 	return &LoggingRoundTripper{
 		transport: tr,
