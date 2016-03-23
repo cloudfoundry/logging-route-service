@@ -42,5 +42,5 @@ Example:
 
 ```sh
 cf set-env logging-route-service SKIP_SSL_VALIDATION false
-cf restage logging-route-service
+cf restart logging-route-service
 ```
