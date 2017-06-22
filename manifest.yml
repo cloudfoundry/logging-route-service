@@ -1,5 +1,5 @@
 ---
 applications:
 - env:
-    GOVERSION: go1.7
+    GOVERSION: go1.8
     GOPACKAGENAME: github.com/cloudfoundry-samples/logging-route-service
