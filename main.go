@@ -20,18 +20,12 @@ const (
 )
 
 func main() {
-	var (
-		port              string
-		skipSslValidation bool
-		err               error
-	)
-
-	if port = os.Getenv("PORT"); len(port) == 0 {
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
 		port = DEFAULT_PORT
 	}
-	if skipSslValidation, err = strconv.ParseBool(os.Getenv("SKIP_SSL_VALIDATION")); err != nil {
-		skipSslValidation = true
-	}
+	skipSslValidation, _ := strconv.ParseBool(os.Getenv("SKIP_SSL_VALIDATION"))
+
 	log.SetOutput(os.Stdout)
 
 	roundTripper := NewLoggingRoundTripper(skipSslValidation)

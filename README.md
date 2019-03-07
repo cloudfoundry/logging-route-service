@@ -36,12 +36,12 @@ cf restage logging-route-service
 
 ### SKIP_SSL_VALIDATION
 
-If you set this environment variable to false, the route service
-will validate SSL certificates. By default the route service skips SSL validation.
+Set this environment variable to true in order to skip the validation of SSL certificates.
+By default the route service will attempt to validate certificates.
 
 Example:
 
 ```sh
-cf set-env logging-route-service SKIP_SSL_VALIDATION false
+cf set-env logging-route-service SKIP_SSL_VALIDATION true
 cf restart logging-route-service
 ```
